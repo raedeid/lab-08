@@ -1,5 +1,9 @@
-CREATE TABLE pepole(
+DROP TABLE IF EXISTS information;
+
+CREATE TABLE information (
     id SERIAL PRIMARY KEY,
-    first_name VARCHAR(255),
-    last_name VARCHAR (225)
+    city VARCHAR(255),
+    latitude VARCHAR(255),
+    longitude VARCHAR(255)
+
 );
