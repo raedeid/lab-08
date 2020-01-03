@@ -9,13 +9,14 @@ const server = express();
 const superagent = require('superagent');
 const pg = require('pg')
 
-const client = new pg.Client(process.env.DATABASE_URL)
+// const client = new pg.Client(process.env.DATABASE_URL)
+const client = new pg.Client(process.env.DATABASE_URL);
 client.connect()
-.then(()=>{
-    server.listen(PORT,()=>{
-        console.log('database connected');
-    })
-});
+    .then(() => {
+        server.listen(PORT, () => {
+            console.log('database connected');
+        })
+    });
 
 server.use(cors());
 
@@ -24,13 +25,14 @@ require('dotenv').config();
 const PORT = process.env.PORT || 3300;
 const GEOCODE_API_KEY = process.env.GEOCODE_API_KEY;
 const DARKSKY_API_KEY = process.env.DARKSKY_API_KEY;
-const EVENTFUL_APP_KEY  = process.env.EVENTFUL_APP_KEY;
+const EVENTFUL_APP_KEY = process.env.EVENTFUL_APP_KEY;
+// const YELP_APP_KEY = process.env.YELP_APP_KEY
 
-server.listen(PORT,()=>{
+server.listen(PORT, () => {
     console.log(' at PORT 3300');
 })
 
-server.get('/',(request,response)=>{
+server.get('/', (request, response) => {
     response.status(200).send('worked');
 })
 
@@ -45,7 +47,12 @@ function Location(city, locationData) {
 
 function locationHandler(request, response) {
     // Read the city from the user (request) and respond
-    let city = request.query['city'];
+    console.log(request)
+    let city = request.query.city;
+    let sql = 'SELECT * FROM locations WHERE search_query = $1';
+
+    client.query(sql, city)
+
     getLocationData(city)
         .then((data) => {
             response.status(200).send(data);
@@ -92,37 +99,51 @@ function getWeatherData(lat, lng) {
         });
 }
 /////////////////////////////////////////////////////////////////////
-// server.get('/eventful', eventFulHandler);
-// function Event(data){
-//     this.link =data.url;
-//     this.name =data.title;
-//     this.event_date=data.start_time;
-//     this.summary=data.description;
+server.get('/eventful', eventFulHandler);
+function
+    Event(data) {
+    this.link = data.url[0];
+    this.name = data.title[0];
+    this.event_date = data.start_time[0];
+    this.summary = data.description[0];
+}
+function eventFulHandler(request, response) {
+
+    debugger;
+    let city = request.query.location;
+    // let lat = request.query.formatted_query;
+    // let lon = request.query.formatted_query;
+    console.log(city);
+    getEventData(city)
+        .then((output) => {
+            response.status(200).send(output);
+        });
+}
+function getEventData(formatted_query) {
+    const url = `http://api.eventful.com/json/events/search?app_key=${EVENTFUL_APP_KEY}&location=${formatted_query}&format=json&limit=1`;
+    //http://api.eventful.com/rest/events/search?...&keywords=books&location=San+Diego&date=Future
+
+    // console.log(url)
+    return superagent.get(url)
+        .then((data) => {
+            let convertData = JSON.parse(data.text);
+            let res = convertData.events.event.map(day => new Event(day))
+            return res
+        })
+}
+
+
+
+// server.get('/yelp',yelbHandle)
+
+// function yelp(request,response){
+//     let loc = request.query.location
+//     let lat = request.query.latitude
+//     let log = request.query.longitude
+//     getYelbData(loc,lat,log)
+
 // }
-// function eventFulHandler(request, response) {
-//     let city = request.query.formatted_query;
-//     // let lat = request.query.formatted_query;
-//     // let lon = request.query.formatted_query;
-//     console.log(city);
-//     getEventData(city)
-//         .then((output) => {
-//             response.status(200).send(output);
-//         });
-// }
-// function getEventData(formatted_query) {
-//     const url = `http://api.eventful.com/json/events/search?app_key=${EVENTFUL_APP_KEY}&location=${formatted_query}&format=json&limit=1`;
-//     console.log(url)
-//     return superagent.get(url)
-//         .then((data) => {
-//             let convertData = JSON.parse(data.text);
-//             console.log(convertData);
-//             let first = convertData.events.event
-//             let element= first.map(day => new Event(day));
-//             // console.log(element)
-//             return element;
-        
-//         })
-// }
+
 
 
 

@@ -1,5 +1,9 @@
-CREATE TABLE pepole(
+DROP TABLE IF EXISTS location;
+
+CREATE TABLE location (
     id SERIAL PRIMARY KEY,
-    first_name VARCHAR(255),
-    last_name VARCHAR (225)
+    search_query VARCHAR(255),
+    formatted_query VARCHAR(255),
+    latitude NUMERIC(10, 7),
+    longitude NUMERIC(10, 7)
 );
