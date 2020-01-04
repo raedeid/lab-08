@@ -52,11 +52,17 @@ function locationHandler(request, response) {
     let sql = 'SELECT * FROM locations WHERE search_query = $1';
 
     client.query(sql, city)
-
+    console.log(client.query(sql, city))
     getLocationData(city)
-        .then((data) => {
-            response.status(200).send(data);
-        });
+        .then((results) => {
+            if (results.rowCount) {
+                return results.rows[0];
+              } else {// in case we don't have the data locally , we get it from the API
+                const url = `https://us1.locationiq.com/v1/search.php?key=${GEOCODE_API_KEY}&q=${city}&format=json&limit=1`;
+                return superagent.get(url)
+                  .then(data => dataStoreLocation(city, data.body));
+              }
+            });
 }
 function getLocationData(city) {
     const url = `https://us1.locationiq.com/v1/search.php?key=${GEOCODE_API_KEY}&q=${city}&format=json&limit=1`;
